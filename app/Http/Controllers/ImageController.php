@@ -36,25 +36,21 @@ class ImageController extends Controller
      */
     public function store(Request $request)
     {
-        if ($request->get('image')) {
-
+        if ($request['image']) {
             // Now pass the input and rules into the validator
-            $validator = Validator::make(
-                array('image' => $request->get('image')),
-                array('image' => 'mimes:jpeg,jpg,png,gif|required|max:10000' // max 10000kb
-            ));
+            $validator = Validator::make($request->all(), [
+                'image' => 'image'
+            ]);
 
             // Check to see if validation fails or passes
             if ($validator->fails()) {
                 // Redirect or return json to frontend with a helpful message to inform the user 
                 // that the provided file was not an adequate type
-                return response()->json(['error' => $validator->errors()->getMessages()], 400);
+                Log::info($validator->errors()->getMessages());
+                return response()->json(['error' => $validator->errors()->getMessages()]);
             }
 
-
-
-
-            $encoded = \Image::make($request->get('image'))->encode('png');
+            $encoded = \Image::make($request['image'])->encode('png');
 
             $response = Http::attach(
                 'imageData',

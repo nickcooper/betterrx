@@ -17,14 +17,6 @@
           <div class="card-header">Image upload</div>
           <div class="card-body">
             <div class="row">
-              <div class="col-md-3" v-if="image">
-                <img
-                  :src="image"
-                  class="img-responsive"
-                  height="70"
-                  width="90"
-                />
-              </div>
               <div class="col-md-6">
                 <input
                   type="file"
@@ -97,26 +89,20 @@ export default {
     onImageChange(e) {
       let files = e.target.files || e.dataTransfer.files;
       if (!files.length) return;
-      this.createImage(files[0]);
-    },
-    createImage(file) {
-      if (!file.type.match("image.*")) {
-        return alert("Chosen file is not a supported image type");
-      }
-      let reader = new FileReader();
-      let vm = this;
-      reader.onload = (e) => {
-        vm.image = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      this.image = files[0];
     },
     uploadImage() {
+      const fd = new FormData();
+      fd.append("image", this.image, this.image.name);
       axios
-        .post("/upload", { image: this.image })
+        .post("/upload", fd)
         .then((response) => {
           if (response.data.success) {
             alert(response.data.success);
             this.loadImages();
+          }
+          if (response.data.error) {
+            alert(response.data.error.image);
           }
         })
         .catch((error) => {

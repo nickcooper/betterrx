@@ -1972,14 +1972,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -2005,32 +1997,22 @@ __webpack_require__.r(__webpack_exports__);
     onImageChange: function onImageChange(e) {
       var files = e.target.files || e.dataTransfer.files;
       if (!files.length) return;
-      this.createImage(files[0]);
-    },
-    createImage: function createImage(file) {
-      if (!file.type.match("image.*")) {
-        return alert("Chosen file is not a supported image type");
-      }
-
-      var reader = new FileReader();
-      var vm = this;
-
-      reader.onload = function (e) {
-        vm.image = e.target.result;
-      };
-
-      reader.readAsDataURL(file);
+      this.image = files[0];
     },
     uploadImage: function uploadImage() {
       var _this2 = this;
 
-      axios.post("/upload", {
-        image: this.image
-      }).then(function (response) {
+      var fd = new FormData();
+      fd.append("image", this.image, this.image.name);
+      axios.post("/upload", fd).then(function (response) {
         if (response.data.success) {
           alert(response.data.success);
 
           _this2.loadImages();
+        }
+
+        if (response.data.error) {
+          alert(response.data.error.image);
         }
       })["catch"](function (error) {
         console.log(error);
@@ -37634,15 +37616,6 @@ var render = function() {
           _vm._v(" "),
           _c("div", { staticClass: "card-body" }, [
             _c("div", { staticClass: "row" }, [
-              _vm.image
-                ? _c("div", { staticClass: "col-md-3" }, [
-                    _c("img", {
-                      staticClass: "img-responsive",
-                      attrs: { src: _vm.image, height: "70", width: "90" }
-                    })
-                  ])
-                : _vm._e(),
-              _vm._v(" "),
               _c("div", { staticClass: "col-md-6" }, [
                 _c("input", {
                   staticClass: "form-control",
