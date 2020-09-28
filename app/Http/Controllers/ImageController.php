@@ -51,7 +51,7 @@ class ImageController extends Controller
         }
 
         //Encode image into png format
-        $encoded = Image::make($request['image'])->encode('png');
+        $encoded = \Image::make($request['image'])->encode('png');
 
         //Send image to remote service
         $response = Http::attach(
