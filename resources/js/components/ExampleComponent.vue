@@ -71,7 +71,6 @@ export default {
     };
   },
   mounted() {
-    console.log("Component mounted.");
     this.loadImages();
   },
   methods: {
@@ -80,7 +79,6 @@ export default {
         .get("images")
         .then((response) => {
           this.images = response.data.images;
-          console.log(response.data.images);
         })
         .catch((error) => {
           console.log(error);
@@ -106,7 +104,6 @@ export default {
           }
         })
         .catch((error) => {
-          console.log(error);
           alert(error);
         });
     },

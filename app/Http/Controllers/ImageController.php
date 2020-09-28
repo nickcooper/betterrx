@@ -4,68 +4,71 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
 class ImageController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Displays json response of image links.
      *
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
     {
-        $sessionImages = $request->session()->get('images');
-        $images = $sessionImages ? $sessionImages : [];
-        Log::info($images);
+        //Get session image links
+        $sessionImageData = $request->session()->get('images');
 
-        usort($images, function ($a, $b) {
+        //If session image links is empty set to empty array
+        $imageData = $sessionImageData ?? [];
+
+        //Sort images links by time descending
+        usort($imageData, function ($a, $b) {
             return $a['time'] <= $b['time'];
         });
 
-        return response()->json(['images' => $images]);
+        //Return json array
+        return response()->json(['images' => $imageData]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Stores image into remote service.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-        if ($request['image']) {
-            // Now pass the input and rules into the validator
-            $validator = Validator::make($request->all(), [
-                'image' => 'image'
-            ]);
+        // Create image validation
+        $validator = Validator::make($request->all(), [
+            'image' => 'image'
+        ]);
 
-            // Check to see if validation fails or passes
-            if ($validator->fails()) {
-                // Redirect or return json to frontend with a helpful message to inform the user 
-                // that the provided file was not an adequate type
-                Log::info($validator->errors()->getMessages());
-                return response()->json(['error' => $validator->errors()->getMessages()]);
-            }
-
-            $encoded = \Image::make($request['image'])->encode('png');
-
-            $response = Http::attach(
-                'imageData',
-                base64_encode($encoded)
-            )->post('https://test.rxflodev.com');
-
-            $response = json_decode($response, true);
-
-            if ($response['status'] == 'success') {
-                $request->session()->push('images', ['time' => time(), 'url' => $response['url']]);
-                Log::info($request->session()->get('images'));
-            } else {
-                Log::info('error');
-            }
+        // Check to see if validation fails or passes
+        if ($validator->fails()) {
+            // Redirect errors to frontend
+            return response()->json(['error' => $validator->errors()->getMessages()]);
         }
-        return response()->json(['success' => 'You have successfully uploaded an image'], 200);
+
+        //Encode image into png format
+        $encoded = Image::make($request['image'])->encode('png');
+
+        //Send image to remote service
+        $response = Http::attach(
+            'imageData',
+            base64_encode($encoded)
+        )->post('https://test.rxflodev.com');
+
+        //Decode json response into php
+        $response = json_decode($response, true);
+
+        //If successful add to session, else return error
+        if ($response['status'] == 'success') {
+            $request->session()->push('images', ['time' => time(), 'url' => $response['url']]);
+            return response()->json(['success' => 'You have successfully uploaded an image'], 200);
+        } else {
+            return response()->json(['error' => 'Error saving Image'], 200);
+        }
+
     }
 }
